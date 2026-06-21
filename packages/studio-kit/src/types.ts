@@ -1,6 +1,7 @@
 export type ComponentKind = 'component' | 'module' | 'template'
 export type PackageChannel = 'stable' | 'beta' | 'hotfix' | 'dev'
 export type ValidationSeverity = 'info' | 'warning' | 'error'
+export type StudioPreviewMode = 'mock' | 'json' | 'bitrix-connector' | 'bitrix-site' | 'bitrix-iblock'
 
 export interface ComponentConfig {
   id: string
@@ -16,6 +17,10 @@ export interface StudioConfig {
   title: string
   componentCode: string
   mode: 'design-preview' | 'content-preview' | 'qa' | 'package'
+  defaultDataSourceMode?: StudioPreviewMode
+  dataSourceModes?: StudioPreviewMode[]
+  connectorEndpoint?: string
+  connectorIblockId?: number
   previewViewports: Array<{
     id: 'desktop' | 'tablet' | 'mobile'
     width: number

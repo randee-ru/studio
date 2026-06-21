@@ -32,6 +32,8 @@
 - Добавлен общий pipeline для `mock/json/bitrix-connector/bitrix-site/bitrix-iblock` data source modes.
 - Добавлены scaffold-артефакты `menu` (module) и `legacy` (template).
 - Publish pipeline verified on `slider`, `menu`, and `legacy`.
+- Added live preview data loader and API proxy for preview modes.
+- Studio now passes preview payload into rendered artifacts.
 
 ### In Progress
 
@@ -148,7 +150,8 @@ Current status:
 - `slider/data.adapter.ts` поддерживает mock/json/connector/site/iblock контракты;
 - Studio умеет переключать preview data source mode;
 - scaffold-артефакты `menu` и `legacy` добавлены;
-- следующий шаг — подключить реальный Bitrix Connector endpoint.
+- live preview data path and connector proxy endpoint implemented;
+- следующий шаг — добавить project-level Bitrix endpoint presets и preview profiles.
 
 ### Phase 5. QA and Auto-Fix
 
@@ -237,6 +240,7 @@ Current status:
 - end-to-end HTTP publish flow verified locally
 - Studio Marketplace history panel backed by backend snapshot
 - publish pipeline verified for component, module, and template scaffolds
+- live preview data and render path verified in Studio/backend
 
 ### Phase 8. Client Update Compatibility
 
@@ -279,7 +283,7 @@ Exit criteria:
 
 ## Immediate Next Steps
 
-1. Wire Studio to a real Bitrix Connector datasource endpoint.
+1. Add project-level Bitrix endpoint presets and preview profiles.
 2. Add server-side dry-run / preview endpoints for QA mode.
 3. Start CI workflow for `test -> build -> package -> validate -> publish`.
 4. Align `randee.update` docs with the new package/audit model.
@@ -300,12 +304,10 @@ Exit criteria:
 
 ## Active Next Steps
 
-- Сделать полноценный Marketplace panel в Studio.
-- Добавить module/template build roots и package variants.
-- Подключить real data adapters for JSON / Bitrix Connector / iblock.
-- Начать migration path for `randee.update`.
-- Начать с demo-компонента `slider`.
-- Подготовить кодовую базу к первому push в `randee-ru/studio.git`.
+- Add project-level Bitrix endpoint presets and preview profiles.
+- Add server-side dry-run / preview endpoints for QA mode.
+- Start CI workflow for `test -> build -> package -> validate -> publish`.
+- Align `randee.update` docs with the new package/audit model.
 
 ## Risks
 

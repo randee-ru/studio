@@ -5,6 +5,8 @@
   "mode": "package",
   "defaultDataSourceMode": "mock",
   "dataSourceModes": ["mock", "json", "bitrix-connector", "bitrix-site", "bitrix-iblock"],
+  "connectorEndpoint": "",
+  "connectorIblockId": 12,
   "previewViewports": [
     { "id": "desktop", "width": 1440, "label": "Desktop" },
     { "id": "tablet", "width": 768, "label": "Tablet" },

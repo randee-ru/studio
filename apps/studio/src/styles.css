@@ -208,6 +208,37 @@ button {
   background: rgba(141, 209, 255, 0.12);
 }
 
+.studio-form {
+  display: grid;
+  gap: 12px;
+}
+
+.studio-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.studio-form span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.studio-form input {
+  width: 100%;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  padding: 0 12px;
+  outline: none;
+}
+
+.studio-form input:focus {
+  border-color: rgba(141, 209, 255, 0.28);
+  box-shadow: 0 0 0 3px rgba(141, 209, 255, 0.12);
+}
+
 .studio-publish {
   margin-top: 16px;
   width: 100%;
@@ -285,6 +316,15 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.studio-preview-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 18px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .studio-chip {

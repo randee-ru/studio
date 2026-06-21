@@ -1,7 +1,19 @@
 import mockData from '../mock/data.json'
-import { mapMockToLegacyProps } from '../data.adapter'
+import {
+  mapBitrixIblockToLegacyProps,
+  mapBitrixSiteToLegacyProps,
+  mapBitrixToLegacyProps,
+  mapConnectorToLegacyProps,
+  mapJsonToLegacyProps,
+  mapMockToLegacyProps
+} from '../data.adapter'
 import type { LegacyProps } from './types'
 import './index.css'
+
+export type LegacyStudioPreviewProps = {
+  previewData?: unknown
+  previewMode?: 'mock' | 'json' | 'bitrix-connector' | 'bitrix-site' | 'bitrix-iblock'
+}
 
 function LegacyTemplate({ title, subtitle, sections }: LegacyProps) {
   return (
@@ -29,7 +41,31 @@ function LegacyTemplate({ title, subtitle, sections }: LegacyProps) {
   )
 }
 
-export default function App() {
-  const props = mapMockToLegacyProps(mockData)
-  return <LegacyTemplate {...props} />
+function resolvePreviewProps(previewData: unknown, previewMode?: LegacyStudioPreviewProps['previewMode']): LegacyProps {
+  if (!previewData) {
+    return mapMockToLegacyProps(mockData)
+  }
+
+  if (previewMode === 'json') {
+    return mapJsonToLegacyProps(previewData as LegacyProps)
+  }
+
+  if (previewMode === 'bitrix-connector') {
+    return mapConnectorToLegacyProps(previewData as { sections?: Array<{ NAME?: string; PREVIEW_TEXT?: string }>; title?: string; subtitle?: string })
+  }
+
+  if (previewMode === 'bitrix-site') {
+    return mapBitrixSiteToLegacyProps(previewData as { arResult?: { TITLE?: string; SUBTITLE?: string; SECTIONS?: Array<{ NAME?: string; DETAIL_TEXT?: string }> } })
+  }
+
+  if (previewMode === 'bitrix-iblock') {
+    return mapBitrixIblockToLegacyProps(previewData as { sections?: Array<{ NAME?: string; PREVIEW_TEXT?: string }> })
+  }
+
+  return mapBitrixToLegacyProps(previewData as LegacyProps)
+}
+
+export default function App(props: LegacyStudioPreviewProps = {}) {
+  const previewProps = resolvePreviewProps(props.previewData, props.previewMode)
+  return <LegacyTemplate {...previewProps} />
 }

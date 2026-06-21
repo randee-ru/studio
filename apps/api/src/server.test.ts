@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createServer } from 'node:http'
+import { createServer, type RequestListener } from 'node:http'
 import { describe, expect, it } from 'vitest'
 import { createApiApp } from './server'
 
@@ -13,6 +13,22 @@ async function listen(app: ReturnType<typeof createApiApp>): Promise<{ url: stri
   const address = server.address()
   if (!address || typeof address === 'string') {
     throw new Error('Failed to bind server')
+  }
+
+  return {
+    url: `http://127.0.0.1:${address.port}`,
+    close: () => new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())))
+  }
+}
+
+async function listenJson(handler: RequestListener): Promise<{ url: string; close: () => Promise<void> }> {
+  const server = createServer(handler)
+  await new Promise<void>((resolve) => {
+    server.listen(0, resolve)
+  })
+  const address = server.address()
+  if (!address || typeof address === 'string') {
+    throw new Error('Failed to bind preview server')
   }
 
   return {
@@ -173,6 +189,51 @@ describe('studio api', () => {
       })
       expect(releaseResponse.status).toBe(201)
     } finally {
+      await server.close()
+    }
+  })
+
+  it('resolves preview data via endpoint', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'randee-studio-api-preview-'))
+    const app = createApiApp({ rootDir: root })
+    const server = await listen(app)
+    const connector = await listenJson((req, res) => {
+      const url = new URL(req.url ?? '/', 'http://127.0.0.1')
+      res.setHeader('content-type', 'application/json')
+      res.end(JSON.stringify({
+        title: 'Connector preview',
+        items: [{ NAME: 'One' }],
+        iblockId: url.searchParams.get('iblockId')
+      }))
+    })
+
+    try {
+      await mkdir(join(root, 'components-src', 'slider', 'mock'), { recursive: true })
+      await writeFile(join(root, 'components-src', 'slider', 'mock', 'data.json'), JSON.stringify({
+        title: 'Slider',
+        subtitle: 'Subtitle',
+        slides: []
+      }), 'utf8')
+
+      const response = await fetch(`${server.url}/api/studio/preview-data`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          code: 'slider',
+          mode: 'bitrix-connector',
+          endpoint: `${connector.url}/local/tools/randee.connector/api.php`,
+          iblockId: 12
+        })
+      })
+
+      expect(response.status).toBe(200)
+      const payload = await response.json()
+      expect(payload.data).toMatchObject({
+        title: 'Connector preview',
+        iblockId: '12'
+      })
+    } finally {
+      await connector.close()
       await server.close()
     }
   })

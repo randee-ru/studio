@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
-import { artifacts, artifactsByKind, registry, type ArtifactKind, type StudioArtifactEntry } from './component-registry'
+import { artifacts, artifactsByKind, registry, type ArtifactKind, type StudioPreviewProps } from './component-registry'
 
 type PreviewFrameProps = {
   title: string
   width: number
   scale?: number
-  component: ComponentType
+  component: ComponentType<StudioPreviewProps>
+  previewData?: unknown
+  previewMode?: StudioPreviewProps['previewMode']
 }
 
 type MarketplaceSnapshot = {
@@ -21,7 +23,7 @@ type OperationState = {
   kind: 'idle' | 'pending' | 'success' | 'error'
 }
 
-function PreviewFrame({ title, width, scale = 1, component: Component }: PreviewFrameProps) {
+function PreviewFrame({ title, width, scale = 1, component: Component, previewData, previewMode }: PreviewFrameProps) {
   return (
     <section className="preview-card">
       <div className="preview-card__header">
@@ -30,7 +32,7 @@ function PreviewFrame({ title, width, scale = 1, component: Component }: Preview
       </div>
       <div className="preview-frame" style={{ width: `${width}px` }}>
         <div className="preview-frame__canvas" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-          <Component />
+          <Component previewData={previewData} previewMode={previewMode} />
         </div>
       </div>
     </section>
@@ -75,7 +77,13 @@ export function StudioApp() {
   const Component = selectedArtifact.component
   const { componentConfig, studioConfig } = selectedArtifact
   const [selectedKind, setSelectedKind] = useState<ArtifactKind>(selectedArtifact.kind)
-  const [selectedMode, setSelectedMode] = useState(studioConfig.defaultDataSourceMode ?? 'mock')
+  const defaultDataSourceMode = (studioConfig.defaultDataSourceMode ?? 'mock') as StudioPreviewProps['previewMode']
+  const dataSourceModes = (studioConfig.dataSourceModes ?? ['mock']) as StudioPreviewProps['previewMode'][]
+  const [selectedMode, setSelectedMode] = useState<StudioPreviewProps['previewMode']>(defaultDataSourceMode)
+  const [previewData, setPreviewData] = useState<unknown>(null)
+  const [previewState, setPreviewState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+  const [previewEndpoint, setPreviewEndpoint] = useState(studioConfig.connectorEndpoint ?? '')
+  const [previewIblockId, setPreviewIblockId] = useState(String(studioConfig.connectorIblockId ?? ''))
   const [marketplace, setMarketplace] = useState<MarketplaceSnapshot | null>(null)
   const [operation, setOperation] = useState<OperationState>({ label: 'Status', message: 'Ready', kind: 'idle' })
   const [publishState, setPublishState] = useState<'idle' | 'publishing' | 'published' | 'error'>('idle')
@@ -108,8 +116,52 @@ export function StudioApp() {
 
   useEffect(() => {
     setSelectedKind(selectedArtifact.kind)
-    setSelectedMode(studioConfig.defaultDataSourceMode ?? 'mock')
-  }, [selectedArtifact.kind, studioConfig.defaultDataSourceMode, selectedCode])
+    setSelectedMode((studioConfig.defaultDataSourceMode ?? 'mock') as StudioPreviewProps['previewMode'])
+    setPreviewEndpoint(studioConfig.connectorEndpoint ?? '')
+    setPreviewIblockId(String(studioConfig.connectorIblockId ?? ''))
+  }, [selectedArtifact.kind, studioConfig.connectorEndpoint, studioConfig.connectorIblockId, studioConfig.defaultDataSourceMode, selectedCode])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadPreview(): Promise<void> {
+      setPreviewState('loading')
+
+      try {
+        const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:4010'
+        const response = await fetch(`${apiBase}/api/studio/preview-data`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            code: componentConfig.code,
+            mode: selectedMode,
+            endpoint: previewEndpoint,
+            iblockId: previewIblockId
+          })
+        })
+
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Preview data failed')
+        }
+
+        if (!cancelled) {
+          setPreviewData(payload.data)
+          setPreviewState('loaded')
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setPreviewData(null)
+          setPreviewState('error')
+        }
+      }
+    }
+
+    void loadPreview()
+    return () => {
+      cancelled = true
+    }
+  }, [componentConfig.code, previewEndpoint, previewIblockId, selectedMode])
 
   async function runAction(endpoint: 'test' | 'build' | 'package' | 'validate'): Promise<void> {
     setOperation({ label: endpoint.toUpperCase(), message: 'Running…', kind: 'pending' })
@@ -265,7 +317,7 @@ export function StudioApp() {
                     onClick={() => {
                       setSelectedCode(artifact.componentConfig.code)
                       setSelectedKind(artifact.kind)
-                      setSelectedMode(artifact.studioConfig.defaultDataSourceMode ?? 'mock')
+                      setSelectedMode((artifact.studioConfig.defaultDataSourceMode ?? 'mock') as StudioPreviewProps['previewMode'])
                     }}
                   >
                     <span>{artifact.componentConfig.name}</span>
@@ -293,7 +345,7 @@ export function StudioApp() {
         </header>
 
         <div className="studio-toolbar">
-          {(studioConfig.dataSourceModes ?? ['mock']).map((mode) => (
+          {dataSourceModes.map((mode) => (
             <button
               key={mode}
               type="button"
@@ -305,10 +357,14 @@ export function StudioApp() {
           ))}
         </div>
 
+        <div className="studio-preview-state">
+          <span>{previewState === 'loading' ? 'Loading preview data…' : previewState === 'error' ? 'Preview data failed, showing fallback' : 'Preview data loaded'}</span>
+        </div>
+
         <div className="preview-grid">
-          <PreviewFrame title="Desktop" width={1440} component={Component} />
-          <PreviewFrame title="Tablet" width={768} scale={0.92} component={Component} />
-          <PreviewFrame title="Mobile" width={390} scale={0.86} component={Component} />
+          <PreviewFrame title="Desktop" width={1440} component={Component} previewData={previewData} previewMode={selectedMode} />
+          <PreviewFrame title="Tablet" width={768} scale={0.92} component={Component} previewData={previewData} previewMode={selectedMode} />
+          <PreviewFrame title="Mobile" width={390} scale={0.86} component={Component} previewData={previewData} previewMode={selectedMode} />
         </div>
       </section>
 
@@ -378,6 +434,31 @@ export function StudioApp() {
               <span>Last Event</span>
               <strong>{lastAudit ? `${statusLabel(lastAudit.status)} · ${formatTimestamp(lastAudit.created_at)}` : 'No audit yet'}</strong>
             </div>
+          </div>
+        </section>
+
+        <section className="studio-card">
+          <p className="studio-card__label">Preview Source</p>
+          <div className="studio-form">
+            <label>
+              <span>Connector endpoint</span>
+              <input
+                type="url"
+                value={previewEndpoint}
+                placeholder="https://site.ru/local/tools/randee.connector/api.php"
+                onChange={(event) => setPreviewEndpoint(event.target.value)}
+              />
+            </label>
+            <label>
+              <span>Iblock ID</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={previewIblockId}
+                placeholder="12"
+                onChange={(event) => setPreviewIblockId(event.target.value)}
+              />
+            </label>
           </div>
         </section>
 

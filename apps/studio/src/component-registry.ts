@@ -14,12 +14,16 @@ import LegacyApp from '../../../components-src/legacy/src/App'
 import type { SliderSourceMode } from '../../../components-src/slider/data.adapter'
 
 export type ArtifactKind = 'component' | 'module' | 'template'
+export type StudioPreviewProps = {
+  previewData?: unknown
+  previewMode?: SliderSourceMode
+}
 
 export type StudioArtifactEntry = {
   kind: ArtifactKind
   componentConfig: typeof componentConfig
   studioConfig: typeof studioConfig
-  component: ComponentType
+  component: ComponentType<StudioPreviewProps>
   mockData: unknown
   dataSourceModes: SliderSourceMode[]
   checks: string[]

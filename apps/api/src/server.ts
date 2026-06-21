@@ -9,6 +9,7 @@ import { buildComponentPackageWithOptions } from '../../../packages/studio-kit/s
 import { packageComponentZip } from '../../../packages/studio-kit/src/package'
 import { publishArtifact } from '../../../packages/studio-kit/src/publish'
 import { componentRoot } from '../../../packages/studio-kit/src/paths'
+import { loadPreviewData } from '../../../packages/studio-kit/src/preview'
 import { testComponentPipeline, validatePackageArtifact } from '../../../packages/studio-kit/src/validate'
 
 export interface ApiServerOptions {
@@ -210,6 +211,22 @@ export function createApiApp(options: ApiServerOptions = {}) {
       res.json({ code, ...result })
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : 'Validate error' })
+    }
+  })
+
+  app.post('/api/studio/preview-data', async (req, res) => {
+    try {
+      const code = asString(req.body.code, 'code')
+      const mode = asString(req.body.mode, 'mode') as 'mock' | 'json' | 'bitrix-connector' | 'bitrix-site' | 'bitrix-iblock'
+      const data = await loadPreviewData({
+        code,
+        mode,
+        endpoint: typeof req.body.endpoint === 'string' ? req.body.endpoint : undefined,
+        iblockId: req.body.iblockId ?? undefined
+      }, rootDir)
+      res.json({ code, mode, data })
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Preview data error' })
     }
   })
 
