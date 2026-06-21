@@ -1,0 +1,13 @@
+{
+  "id": "randee.menu.studio",
+  "title": "Randee Menu Studio",
+  "componentCode": "menu",
+  "mode": "content-preview",
+  "defaultDataSourceMode": "mock",
+  "dataSourceModes": ["mock", "json", "bitrix-connector", "bitrix-site", "bitrix-iblock"],
+  "previewViewports": [
+    { "id": "desktop", "width": 1440, "label": "Desktop" },
+    { "id": "tablet", "width": 768, "label": "Tablet" },
+    { "id": "mobile", "width": 390, "label": "Mobile" }
+  ]
+}

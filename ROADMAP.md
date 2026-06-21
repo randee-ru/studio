@@ -30,11 +30,12 @@
 - Добавлен audit trail публикаций.
 - Добавлена поддержка `component/module/template` в контракте pipeline.
 - Добавлен общий pipeline для `mock/json/bitrix-connector/bitrix-site/bitrix-iblock` data source modes.
+- Добавлены scaffold-артефакты `menu` (module) и `legacy` (template).
+- Publish pipeline verified on `slider`, `menu`, and `legacy`.
 
 ### In Progress
 
 - Доводка Marketplace/Publish UI в Studio.
-- Подготовка отдельных scaffold-артефактов для `module` и `template`.
 - Bitrix Connector runtime integration.
 
 ### Not Started
@@ -146,6 +147,7 @@ Current status:
 
 - `slider/data.adapter.ts` поддерживает mock/json/connector/site/iblock контракты;
 - Studio умеет переключать preview data source mode;
+- scaffold-артефакты `menu` и `legacy` добавлены;
 - следующий шаг — подключить реальный Bitrix Connector endpoint.
 
 ### Phase 5. QA and Auto-Fix
@@ -234,6 +236,7 @@ Current status:
 - Studio UI publish button implemented
 - end-to-end HTTP publish flow verified locally
 - Studio Marketplace history panel backed by backend snapshot
+- publish pipeline verified for component, module, and template scaffolds
 
 ### Phase 8. Client Update Compatibility
 
@@ -276,11 +279,10 @@ Exit criteria:
 
 ## Immediate Next Steps
 
-1. Add explicit scaffold templates for `module` and `template` artifacts.
-2. Wire Studio to a real Bitrix Connector datasource endpoint.
-3. Add server-side dry-run / preview endpoints for QA mode.
-4. Start CI workflow for `test -> build -> package -> validate -> publish`.
-5. Align `randee.update` docs with the new package/audit model.
+1. Wire Studio to a real Bitrix Connector datasource endpoint.
+2. Add server-side dry-run / preview endpoints for QA mode.
+3. Start CI workflow for `test -> build -> package -> validate -> publish`.
+4. Align `randee.update` docs with the new package/audit model.
 
 - каждое изменение проходит через единый pipeline;
 - publish можно запускать предсказуемо и воспроизводимо.

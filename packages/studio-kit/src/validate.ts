@@ -2,8 +2,9 @@ import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { join, posix } from 'node:path'
 import JSZip from 'jszip'
+import { readJson } from './fs'
 import { packageRoot, repoRootFrom, zipRoot } from './paths'
-import type { PackageManifest, ValidationIssue, ValidationResult, TestResult } from './types'
+import type { ComponentConfig, PackageManifest, ValidationIssue, ValidationResult, TestResult } from './types'
 import { buildComponentPackage } from './build'
 import { packageComponentZip } from './package'
 
@@ -229,17 +230,20 @@ export async function testComponentPipeline(componentCode: string, cwd = process
   const report: string[] = []
   const repoRoot = repoRootFrom(cwd)
   const componentDir = packageRoot(repoRoot, componentCode)
+  const componentConfigPath = join(repoRoot, 'components-src', componentCode, 'component.config.json')
 
-  const sourceChecks = [
-    ['component.config.json', join(repoRoot, 'components-src', componentCode, 'component.config.json')],
-    ['studio.config.json', join(repoRoot, 'components-src', componentCode, 'studio.config.json')],
-    ['src/main.tsx', join(repoRoot, 'components-src', componentCode, 'src', 'main.tsx')],
-    ['src/App.tsx', join(repoRoot, 'components-src', componentCode, 'src', 'App.tsx')],
-    ['bitrix/component.php', join(repoRoot, 'components-src', componentCode, 'bitrix', 'component.php')],
-    ['bitrix/template.php', join(repoRoot, 'components-src', componentCode, 'bitrix', 'template.php')],
-    ['mock/data.json', join(repoRoot, 'components-src', componentCode, 'mock', 'data.json')],
-    ['data.adapter.ts', join(repoRoot, 'components-src', componentCode, 'data.adapter.ts')]
-  ]
+  if (!existsSync(componentConfigPath)) {
+    return {
+      success: false,
+      message: `Component ${componentCode} is missing component.config.json`,
+      report: [`FAIL component.config.json`]
+    }
+  }
+
+  const componentConfig = await readJson<ComponentConfig>(componentConfigPath)
+
+  const sourceChecks = expectedSourceChecksForType(repoRoot, componentCode, componentConfig.type)
+  sourceChecks.unshift(['component.config.json', componentConfigPath])
 
   let success = true
   for (const [label, filePath] of sourceChecks) {
@@ -283,4 +287,45 @@ export async function testComponentPipeline(componentCode: string, cwd = process
     message: success ? `Component ${componentCode} passed pipeline checks` : `Component ${componentCode} has failures`,
     report
   }
+}
+
+function expectedSourceChecksForType(repoRoot: string, componentCode: string, type: ComponentConfig['type']): Array<[string, string]> {
+  const base = join(repoRoot, 'components-src', componentCode)
+  const common: Array<[string, string]> = [
+    ['studio.config.json', join(base, 'studio.config.json')],
+    ['src/main.tsx', join(base, 'src', 'main.tsx')],
+    ['src/App.tsx', join(base, 'src', 'App.tsx')],
+    ['mock/data.json', join(base, 'mock', 'data.json')],
+    ['data.adapter.ts', join(base, 'data.adapter.ts')]
+  ]
+
+  if (type === 'component') {
+    return [
+      ...common,
+      ['bitrix/component.php', join(base, 'bitrix', 'component.php')],
+      ['bitrix/template.php', join(base, 'bitrix', 'template.php')],
+      ['bitrix/.description.php', join(base, 'bitrix', '.description.php')],
+      ['bitrix/.parameters.php', join(base, 'bitrix', '.parameters.php')]
+    ]
+  }
+
+  if (type === 'module') {
+    return [
+      ...common,
+      ['bitrix/include.php', join(base, 'bitrix', 'include.php')],
+      ['bitrix/install/index.php', join(base, 'bitrix', 'install', 'index.php')],
+      ['bitrix/install/version.php', join(base, 'bitrix', 'install', 'version.php')],
+      ['bitrix/admin/menu.php', join(base, 'bitrix', 'admin', 'menu.php')],
+      ['bitrix/lib/MenuManager.php', join(base, 'bitrix', 'lib', 'MenuManager.php')]
+    ]
+  }
+
+  return [
+    ...common,
+    ['bitrix/header.php', join(base, 'bitrix', 'header.php')],
+    ['bitrix/footer.php', join(base, 'bitrix', 'footer.php')],
+    ['bitrix/description.php', join(base, 'bitrix', 'description.php')],
+    ['bitrix/template.php', join(base, 'bitrix', 'template.php')],
+    ['bitrix/template_styles.css', join(base, 'bitrix', 'template_styles.css')]
+  ]
 }

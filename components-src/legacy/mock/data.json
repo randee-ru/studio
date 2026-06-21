@@ -1,0 +1,9 @@
+{
+  "title": "Randee Legacy Template",
+  "subtitle": "A template scaffold ready for Bitrix layouts.",
+  "sections": [
+    { "title": "Header", "text": "Global layout and hero support." },
+    { "title": "Content", "text": "Composable page sections and slots." },
+    { "title": "Footer", "text": "Template-level navigation and legal area." }
+  ]
+}

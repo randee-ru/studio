@@ -70,7 +70,8 @@ function statusLabel(status: string): string {
 
 export function StudioApp() {
   const componentCode = (import.meta.env.VITE_STUDIO_COMPONENT || artifacts[0]?.componentConfig.code || 'slider') as keyof typeof registry
-  const selectedArtifact = registry[componentCode] ?? artifacts[0]
+  const [selectedCode, setSelectedCode] = useState(componentCode)
+  const selectedArtifact = registry[selectedCode] ?? artifacts[0]
   const Component = selectedArtifact.component
   const { componentConfig, studioConfig } = selectedArtifact
   const [selectedKind, setSelectedKind] = useState<ArtifactKind>(selectedArtifact.kind)
@@ -104,6 +105,11 @@ export function StudioApp() {
       setMarketplace(null)
     })
   }, [])
+
+  useEffect(() => {
+    setSelectedKind(selectedArtifact.kind)
+    setSelectedMode(studioConfig.defaultDataSourceMode ?? 'mock')
+  }, [selectedArtifact.kind, studioConfig.defaultDataSourceMode, selectedCode])
 
   async function runAction(endpoint: 'test' | 'build' | 'package' | 'validate'): Promise<void> {
     setOperation({ label: endpoint.toUpperCase(), message: 'Running…', kind: 'pending' })
@@ -189,13 +195,37 @@ export function StudioApp() {
         </div>
 
         <nav className="studio-nav">
-          <button className={`studio-nav__item ${selectedKind === 'component' ? 'studio-nav__item--active' : ''}`} type="button" onClick={() => setSelectedKind('component')}>
+          <button
+            className={`studio-nav__item ${selectedKind === 'component' ? 'studio-nav__item--active' : ''}`}
+            type="button"
+            onClick={() => {
+              setSelectedKind('component')
+              const first = artifactsByKind('component')[0]
+              if (first) setSelectedCode(first.componentConfig.code)
+            }}
+          >
             Components <span>{counts.component}</span>
           </button>
-          <button className={`studio-nav__item ${selectedKind === 'module' ? 'studio-nav__item--active' : ''}`} type="button" onClick={() => setSelectedKind('module')}>
+          <button
+            className={`studio-nav__item ${selectedKind === 'module' ? 'studio-nav__item--active' : ''}`}
+            type="button"
+            onClick={() => {
+              setSelectedKind('module')
+              const first = artifactsByKind('module')[0]
+              if (first) setSelectedCode(first.componentConfig.code)
+            }}
+          >
             Modules <span>{counts.module}</span>
           </button>
-          <button className={`studio-nav__item ${selectedKind === 'template' ? 'studio-nav__item--active' : ''}`} type="button" onClick={() => setSelectedKind('template')}>
+          <button
+            className={`studio-nav__item ${selectedKind === 'template' ? 'studio-nav__item--active' : ''}`}
+            type="button"
+            onClick={() => {
+              setSelectedKind('template')
+              const first = artifactsByKind('template')[0]
+              if (first) setSelectedCode(first.componentConfig.code)
+            }}
+          >
             Templates <span>{counts.template}</span>
           </button>
         </nav>
@@ -227,7 +257,22 @@ export function StudioApp() {
           <p className="studio-card__label">Artifact list</p>
           <ul className="checklist">
             {filteredArtifacts.length > 0 ? (
-              filteredArtifacts.map((artifact) => <li key={artifact.componentConfig.id}>{artifact.componentConfig.name}</li>)
+              filteredArtifacts.map((artifact) => (
+                <li key={artifact.componentConfig.id}>
+                  <button
+                    type="button"
+                    className={`studio-artifact-pick ${selectedCode === artifact.componentConfig.code ? 'studio-artifact-pick--active' : ''}`}
+                    onClick={() => {
+                      setSelectedCode(artifact.componentConfig.code)
+                      setSelectedKind(artifact.kind)
+                      setSelectedMode(artifact.studioConfig.defaultDataSourceMode ?? 'mock')
+                    }}
+                  >
+                    <span>{artifact.componentConfig.name}</span>
+                    <small>{artifact.kind}</small>
+                  </button>
+                </li>
+              ))
             ) : (
               <li>Scaffolds for this group are not added yet</li>
             )}

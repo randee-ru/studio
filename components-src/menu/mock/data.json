@@ -1,0 +1,10 @@
+{
+  "title": "Randee Menu",
+  "subtitle": "Navigation module for Bitrix sites.",
+  "items": [
+    { "label": "Products", "href": "/products", "active": true },
+    { "label": "Packages", "href": "/packages", "active": false },
+    { "label": "Releases", "href": "/releases", "active": false },
+    { "label": "Reports", "href": "/reports", "active": false }
+  ]
+}
