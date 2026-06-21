@@ -1,0 +1,10 @@
+{
+  "name": "@randee/studio-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "test": "vitest run"
+  }
+}
+

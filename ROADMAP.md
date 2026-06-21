@@ -21,19 +21,26 @@
 - Найдены целевые серверные окружения:
   - `192.168.42.50` — app/runtime Randee;
   - `192.168.88.20` — Bitrix site + update module.
+- Поднят локальный `studio/` workspace и базовый Vite UI.
+- Собран demo-компонент `slider`.
+- Реализованы `build:component`, `package:component`, `validate:package`, `test:component`.
+- Реализован серверный `POST /api/studio/publish`.
+- Реализованы базовые Marketplace admin endpoints.
+- Добавлен Marketplace snapshot endpoint для Studio.
+- Добавлен audit trail публикаций.
+- Добавлена поддержка `component/module/template` в контракте pipeline.
+- Добавлен общий pipeline для `mock/json/bitrix-connector/bitrix-site/bitrix-iblock` data source modes.
 
 ### In Progress
 
-- Проектирование целевой архитектуры Studio.
-- Определение общего пакета контрактов для component/module/template.
+- Доводка Marketplace/Publish UI в Studio.
+- Подготовка отдельных scaffold-артефактов для `module` и `template`.
+- Bitrix Connector runtime integration.
 
 ### Not Started
 
-- Стартовый scaffold `studio/`.
-- Shared build/package/validate pipeline.
-- UI Studio с 3 preview viewport-ами.
-- Publish pipeline в Marketplace.
-- API endpoints для автоматизации публикации.
+- Client-side `randee.update` compatibility migration.
+- CI/CD pipeline for publish and release gates.
 
 ## Workstreams
 
@@ -135,6 +142,12 @@ Exit criteria:
 - компонент работает с несколькими источниками данных;
 - mapping данных прозрачен и изолирован от UI.
 
+Current status:
+
+- `slider/data.adapter.ts` поддерживает mock/json/connector/site/iblock контракты;
+- Studio умеет переключать preview data source mode;
+- следующий шаг — подключить реальный Bitrix Connector endpoint.
+
 ### Phase 5. QA and Auto-Fix
 
 Goal: встроить проверку качества прямо в Studio.
@@ -182,6 +195,17 @@ Exit criteria:
 - токен не попадает в браузер;
 - publish работает только через backend.
 
+Current status:
+
+- `POST /api/admin/products` implemented
+- `POST /api/admin/packages` implemented
+- `POST /api/admin/packages/upload` implemented
+- `POST /api/admin/releases` implemented
+- `POST /api/admin/releases/{id}/publish` implemented
+- `POST /api/studio/publish` implemented
+- `GET /api/studio/marketplace` implemented
+- publish audits implemented
+
 ### Phase 7. Publish Pipeline
 
 Goal: связать полный путь от кнопки `Publish to Marketplace` до клиента.
@@ -203,6 +227,13 @@ Exit criteria:
 - publish запускается из Studio;
 - статусы отражаются в UI;
 - история публикаций доступна в Marketplace panel.
+
+Current status:
+
+- CLI publish command implemented
+- Studio UI publish button implemented
+- end-to-end HTTP publish flow verified locally
+- Studio Marketplace history panel backed by backend snapshot
 
 ### Phase 8. Client Update Compatibility
 
@@ -239,6 +270,18 @@ Deliverables:
 
 Exit criteria:
 
+- pipeline runs in CI and blocks broken releases;
+- artifact history is visible end-to-end from Studio to Marketplace;
+- publish automation is safe enough to hand over to product teams.
+
+## Immediate Next Steps
+
+1. Add explicit scaffold templates for `module` and `template` artifacts.
+2. Wire Studio to a real Bitrix Connector datasource endpoint.
+3. Add server-side dry-run / preview endpoints for QA mode.
+4. Start CI workflow for `test -> build -> package -> validate -> publish`.
+5. Align `randee.update` docs with the new package/audit model.
+
 - каждое изменение проходит через единый pipeline;
 - publish можно запускать предсказуемо и воспроизводимо.
 
@@ -255,9 +298,10 @@ Exit criteria:
 
 ## Active Next Steps
 
-- Создать `studio/` app scaffold.
-- Зафиксировать shared schemas.
-- Определить формат пакета для `component/module/template`.
+- Сделать полноценный Marketplace panel в Studio.
+- Добавить module/template build roots и package variants.
+- Подключить real data adapters for JSON / Bitrix Connector / iblock.
+- Начать migration path for `randee.update`.
 - Начать с demo-компонента `slider`.
 - Подготовить кодовую базу к первому push в `randee-ru/studio.git`.
 

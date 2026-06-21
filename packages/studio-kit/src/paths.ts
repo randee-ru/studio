@@ -8,6 +8,10 @@ export function componentRoot(repoRoot: string, componentCode: string): string {
   return join(repoRoot, 'components-src', componentCode)
 }
 
+export function artifactRoot(repoRoot: string, artifactCode: string): string {
+  return join(repoRoot, 'components-src', artifactCode)
+}
+
 export function distRoot(repoRoot: string): string {
   return join(repoRoot, 'dist')
 }
@@ -23,4 +27,3 @@ export function zipRoot(repoRoot: string): string {
 export function buildRoot(repoRoot: string, componentCode: string): string {
   return join(packageRoot(repoRoot, componentCode), 'payload')
 }
-

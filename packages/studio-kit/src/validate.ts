@@ -80,6 +80,21 @@ async function inspectPackageJson(
     pushIssue(issues, 'error', 'paths must be a non-empty array')
   }
 
+  const expectedRoot = expectedInstallRoot(manifest.type)
+  if (expectedRoot && Array.isArray(manifest.paths)) {
+    for (const path of manifest.paths) {
+      if (typeof path !== 'string' || path.trim() === '') {
+        pushIssue(issues, 'error', 'paths contains an empty entry')
+        continue
+      }
+
+      const normalized = path.replaceAll('\\', '/').replace(/^\/+/, '')
+      if (!normalized.startsWith(expectedRoot)) {
+        pushIssue(issues, 'error', `Path "${normalized}" does not match type ${manifest.type}`)
+      }
+    }
+  }
+
   const allowedRoot = 'payload/'
   for (const entry of entries) {
     const normalized = entry.replaceAll('\\', '/')
@@ -90,6 +105,12 @@ async function inspectPackageJson(
       pushIssue(issues, 'error', `Unexpected root entry: ${normalized}`)
     }
   }
+}
+
+function expectedInstallRoot(type: PackageManifest['type']): string {
+  if (type === 'component') return 'local/components/'
+  if (type === 'module') return 'local/modules/'
+  return 'local/templates/'
 }
 
 async function inspectEntriesFromZip(zipPath: string, issues: ValidationIssue[]): Promise<PackageManifest | null> {

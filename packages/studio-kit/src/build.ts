@@ -1,10 +1,11 @@
 import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { build as esbuildBuild } from 'esbuild'
 import { ensureDir, copyDirectoryTree, readJson, writeJson } from './fs'
 import { buildRoot, componentRoot, packageRoot, repoRootFrom } from './paths'
-import type { BuildResult, ComponentConfig, PackageManifest } from './types'
+import { resolveInstallPath, resolveInstallPaths } from './artifacts'
+import type { BuildResult, ComponentConfig, PackageChannel, PackageManifest } from './types'
 
 function semverFromVersion(version: string): string {
   return `v${version}`
@@ -22,18 +23,29 @@ function buildNumber(): string {
 }
 
 export async function buildComponentPackage(componentCode: string, cwd = process.cwd()): Promise<BuildResult> {
+  return buildComponentPackageWithOptions(componentCode, cwd)
+}
+
+export async function buildComponentPackageWithOptions(
+  componentCode: string,
+  cwd = process.cwd(),
+  options: { version?: string; channel?: PackageChannel } = {}
+): Promise<BuildResult> {
   const repoRoot = repoRootFrom(cwd)
   const sourceRoot = componentRoot(repoRoot, componentCode)
   const packageDir = packageRoot(repoRoot, componentCode)
   const payloadRoot = buildRoot(repoRoot, componentCode)
-  const componentDir = join(payloadRoot, 'local', 'components', 'randee', componentCode)
-  const templateDistDir = join(componentDir, 'templates', '.default', 'dist')
 
   if (!existsSync(sourceRoot)) {
     throw new Error(`Component source not found: ${componentCode}`)
   }
 
   const componentConfig = await readJson<ComponentConfig>(join(sourceRoot, 'component.config.json'))
+  const resolvedVersion = options.version ?? componentConfig.version
+  const resolvedChannel = options.channel ?? 'stable'
+  const installPath = resolveInstallPath(componentConfig)
+  const componentDir = join(payloadRoot, installPath)
+  const templateDistDir = join(componentDir, 'templates', '.default', 'dist')
 
   await ensureDir(templateDistDir)
   await copyDirectoryTree(join(sourceRoot, 'bitrix'), componentDir)
@@ -86,12 +98,12 @@ export async function buildComponentPackage(componentCode: string, cwd = process
     product_id: `randee.${componentConfig.code}`,
     type: componentConfig.type,
     name: componentConfig.name,
-    version: componentConfig.version,
-    channel: 'stable',
-    release_tag: semverFromVersion(componentConfig.version),
+    version: resolvedVersion,
+    channel: resolvedChannel,
+    release_tag: semverFromVersion(resolvedVersion),
     build_number: buildNumber(),
     install_root: 'payload',
-    paths: [`local/components/randee/${componentConfig.code}`]
+    paths: resolveInstallPaths(componentConfig)
   }
 
   await writeJson(join(packageDir, 'package.json'), manifest)

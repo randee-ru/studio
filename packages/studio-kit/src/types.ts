@@ -70,3 +70,57 @@ export interface TestResult {
   report: string[]
 }
 
+export interface MarketplaceProductRecord {
+  id: string
+  product_id: string
+  name: string
+  type: ComponentKind
+  vendor: string
+  version: string
+  channel: PackageChannel
+  created_at: string
+  updated_at: string
+}
+
+export interface MarketplacePackageRecord {
+  id: string
+  product_id: string
+  version: string
+  channel: PackageChannel
+  zip_path: string
+  zip_name: string
+  zip_sha256: string
+  zip_size: number
+  build_number: string
+  created_at: string
+}
+
+export interface MarketplaceReleaseRecord {
+  id: string
+  package_id: string
+  product_id: string
+  version: string
+  channel: PackageChannel
+  release_notes: string
+  status: 'draft' | 'published'
+  created_at: string
+  published_at?: string
+}
+
+export interface MarketplaceAuditRecord {
+  id: string
+  componentCode: string
+  version: string
+  channel: PackageChannel
+  status: 'ready' | 'testing' | 'build_failed' | 'validation_failed' | 'uploading' | 'uploaded' | 'published' | 'error'
+  message: string
+  created_at: string
+}
+
+export interface MarketplaceStoreDocument {
+  updated_at: string
+  products: MarketplaceProductRecord[]
+  packages: MarketplacePackageRecord[]
+  releases: MarketplaceReleaseRecord[]
+  audits?: MarketplaceAuditRecord[]
+}
