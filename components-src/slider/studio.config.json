@@ -1,0 +1,12 @@
+{
+  "id": "randee.slider.studio",
+  "title": "Randee Slider Studio",
+  "componentCode": "slider",
+  "mode": "design-preview",
+  "previewViewports": [
+    { "id": "desktop", "width": 1440, "label": "Desktop" },
+    { "id": "tablet", "width": 768, "label": "Tablet" },
+    { "id": "mobile", "width": 390, "label": "Mobile" }
+  ]
+}
+

@@ -1,0 +1,37 @@
+{
+  "name": "randee-studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "studio": "tsx scripts/cli.ts studio",
+    "build:component": "tsx scripts/cli.ts build:component",
+    "package:component": "tsx scripts/cli.ts package:component",
+    "validate:package": "tsx scripts/cli.ts validate:package",
+    "test:component": "tsx scripts/cli.ts test:component",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "esbuild": "^0.25.5",
+    "jszip": "^3.10.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^5.0.1",
+    "tsx": "^4.22.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
+  }
+}
+

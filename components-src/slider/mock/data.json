@@ -1,0 +1,22 @@
+{
+  "title": "Slider that feels native to Randee",
+  "subtitle": "React + Swiper + Motion ready preview scaffold.",
+  "slides": [
+    {
+      "title": "Design with confidence",
+      "text": "Preview changes across three viewport sizes at once.",
+      "accent": "rgba(141, 209, 255, 0.28)"
+    },
+    {
+      "title": "Bitrix-ready output",
+      "text": "Build into payload/local/components/randee/slider.",
+      "accent": "rgba(100, 179, 255, 0.24)"
+    },
+    {
+      "title": "Publish without admin work",
+      "text": "Package, validate, upload and publish from Studio.",
+      "accent": "rgba(63, 140, 227, 0.28)"
+    }
+  ]
+}
+
